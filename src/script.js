@@ -1,15 +1,29 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js"; // Import RGBELoader
 import GUI from "lil-gui";
 import testVertexShader from "./shaders/test/vertex.glsl";
 import testFragmentShader from "./shaders/test/fragment.glsl";
 import testFragmentShader2 from "./shaders/test/fragment2.glsl";
+import { Group } from "three/examples/jsm/libs/tween.module.js";
 /**
  * Base
  */
 // Debug
 const gui = new GUI();
+// Loaders
+const rgbeLoader = new RGBELoader();
+rgbeLoader.load("/textures/little_paris_eiffel_tower_4k.hdr", (hdrEquirect) => {
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  const envMap = pmremGenerator.fromEquirectangular(hdrEquirect).texture;
 
+  // Set the environment map for scene and objects
+  scene.background = envMap;
+  scene.environment = envMap;
+
+  // Optionally, free the HDR texture after conversion to save memory
+  hdrEquirect.dispose();
+});
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
 
@@ -65,7 +79,7 @@ const material = new THREE.RawShaderMaterial({
   //   wireframe: true,
   transparent: true,
   uniforms: {
-    uFrequency: { value: new THREE.Vector2(-7, 1) },
+    uFrequency: { value: new THREE.Vector2(13, 3) },
     uTime: { value: 0 },
     uColor: { value: new THREE.Color("orange") },
     uTexture: { value: flagTexture },
@@ -81,7 +95,7 @@ const material2 = new THREE.RawShaderMaterial({
   //   wireframe: true,
   transparent: true,
   uniforms: {
-    uFrequency: { value: new THREE.Vector2(-7, 0.3) },
+    uFrequency: { value: new THREE.Vector2(-6, 3) },
     uTime: { value: 0 },
     uColor: { value: new THREE.Color("orange") },
     uTexture2: { value: flagTexture2 },
@@ -115,13 +129,24 @@ gui
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
 const mesh2 = new THREE.Mesh(geometry2, material2);
-mesh.scale.multiplyScalar(0.6);
-mesh.position.x += 0.5;
-mesh2.position.x += -0.5;
-mesh2.scale.multiplyScalar(0.6);
+mesh.position.x += 1.15;
+mesh2.position.x -= 1.15;
 
-scene.add(mesh);
-scene.add(mesh2);
+// Create a group to hold both meshes
+const group = new THREE.Group();
+group.add(mesh);
+group.add(mesh2);
+// group.rotation.x += 1;
+// group.rotation.y += 1;
+scene.add(group); // Add the group to the scene
+group.scale.multiplyScalar(0.65);
+// Expose the group rotation to the GUI
+group.rotation.y = 420 / 100;
+gui
+  .add(group.rotation, "y", 0, Math.PI * 2, 0.01)
+  .name("Model Rotation")
+  .min(1)
+  .max(4);
 
 /**
  * Sizes
@@ -149,18 +174,46 @@ window.addEventListener("resize", () => {
  * Camera
  */
 // Base camera
+// Camera
 const camera = new THREE.PerspectiveCamera(
-  125,
-  sizes.width / sizes.height,
+  70,
+  window.innerWidth / window.innerHeight,
   0.1,
   100
 );
-camera.position.set(0.25, -0.25, 1);
 scene.add(camera);
+
+// Set initial rotation angle for the camera
+let rotationAngle = 3.7; // Default rotation angle
+
+// Calculate the camera's initial position based on the rotation angle
+const radius = 1.5; // Distance from the center of the scene
+camera.position.z = radius * Math.sin(rotationAngle);
+camera.position.x = radius * Math.cos(rotationAngle);
+camera.position.y += -0.25;
+camera.lookAt(0, 0, 0); // Keep camera looking at the center of the scene
+camera.rotation.y = 9;
+gui
+  .add(camera.rotation, "y", 0, Math.PI * 2)
+  .name("Env Rotation")
+  .onChange((value) => {
+    // Adjust camera position as group rotates
+    const radius = 1.5; // Distance of the camera from the center of the scene
+    camera.position.x = radius * Math.cos(value);
+    camera.position.z = radius * Math.sin(value);
+
+    // Keep the camera looking at the center of the scene
+    // camera.lookAt(0, 0, 0);
+  })
+  .min(6)
+  .max(10);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
+
+// Add a GUI control to rotate the camera and mesh together
+// camera.rotation += 3.6;
 
 /**
  * Renderer
