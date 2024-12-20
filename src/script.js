@@ -175,8 +175,9 @@ window.addEventListener("resize", () => {
  */
 // Base camera
 // Camera
+let fov = 115;
 const camera = new THREE.PerspectiveCamera(
-  115,
+  fov,
   window.innerWidth / window.innerHeight,
   0.1,
   100
@@ -223,7 +224,11 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
+gui.close(); // Close the GUI by default
+gui.add(camera, "fov", 10, 120).onChange(function (value) {
+  camera.fov = value;
+  camera.updateProjectionMatrix();
+});
 /**
  * Animate
  */
