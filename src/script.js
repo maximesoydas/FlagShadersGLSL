@@ -13,7 +13,7 @@ import { Group } from "three/examples/jsm/libs/tween.module.js";
 const gui = new GUI();
 // Loaders
 const rgbeLoader = new RGBELoader();
-rgbeLoader.load("/textures/little_paris_eiffel_tower_4k.hdr", (hdrEquirect) => {
+rgbeLoader.load("/textures/little_paris_eiffel_tower_1k.hdr", (hdrEquirect) => {
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   const envMap = pmremGenerator.fromEquirectangular(hdrEquirect).texture;
 
@@ -191,7 +191,7 @@ let rotationAngle = 3.7; // Default rotation angle
 const radius = 1.5; // Distance from the center of the scene
 camera.position.z = radius * Math.sin(rotationAngle);
 camera.position.x = radius * Math.cos(rotationAngle);
-camera.position.y += -0.25;
+camera.position.y += -0.15;
 camera.lookAt(0, 0, 0); // Keep camera looking at the center of the scene
 camera.rotation.y = 9;
 gui
