@@ -225,7 +225,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 gui.close(); // Close the GUI by default
-gui.add(camera, "fov", 10, 120).onChange(function (value) {
+gui.add(camera, "fov", 10, 250).onChange(function (value) {
   camera.fov = value;
   camera.updateProjectionMatrix();
 });
